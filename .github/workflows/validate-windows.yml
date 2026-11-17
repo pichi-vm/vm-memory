@@ -1,0 +1,72 @@
+name: Validate Windows file mappings
+
+on:
+  push:
+    branches: [validation/windows-file-mapping]
+
+permissions:
+  contents: read
+  statuses: write
+
+env:
+  REVISION: 6be7d3962b32ba57a56264a0ce933e7bb9d920cd
+
+jobs:
+  native-windows:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ env.REVISION }}
+      - name: Verify revision
+        run: test "$(git rev-parse HEAD)" = "$REVISION"
+      - name: Install Rust
+        run: rustup toolchain install nightly-2026-07-06 --profile minimal
+      - name: Verify regression tests exist
+        run: |
+          cargo +nightly-2026-07-06 test --no-default-features --features backend-mmap,backend-bitmap -- --list > tests.txt
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          listing = Path("tests.txt").read_text()
+          for name in (
+              "file_views_share_nonzero_offsets_and_release_the_mapping",
+              "file_mapping_rejects_empty_and_overflowing_extents",
+              "failed_file_view_releases_the_mapping_handle",
+          ):
+              assert "mmap::windows::tests::" + name + ": test" in listing, listing
+          PYTHON
+      - name: Run native tests
+        run: cargo +nightly-2026-07-06 test --no-default-features --features backend-mmap,backend-bitmap -- --show-output
+      - name: Report validation result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ job.status }}
+        run: |
+          python3 - <<'PYTHON'
+          import json
+          import os
+          import urllib.request
+
+          env = os.environ
+          state = "success" if env["RESULT"] == "success" else "failure"
+          payload = json.dumps({
+              "state": state,
+              "context": "Native Windows memory",
+              "description": "Exact revision native Windows memory validation",
+              "target_url": f"{env['GITHUB_SERVER_URL']}/{env['GITHUB_REPOSITORY']}/actions/runs/{env['GITHUB_RUN_ID']}",
+          }).encode()
+          request = urllib.request.Request(
+              f"{env['GITHUB_API_URL']}/repos/{env['GITHUB_REPOSITORY']}/statuses/{env['REVISION']}",
+              data=payload,
+              headers={"Authorization": "Bearer " + env["GH_TOKEN"],
+                       "Accept": "application/vnd.github+json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(request, timeout=30) as response:
+              assert response.status == 201, response.status
+          PYTHON
