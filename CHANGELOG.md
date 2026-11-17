@@ -1,5 +1,12 @@
 # Changelog
 
+## Upcoming Release
+
+### Fixed
+
+- Correct Windows file mapping extents at nonzero offsets and release file views
+  with `UnmapViewOfFile`.
+
 ## 0.18.0
 
 ### Changed
