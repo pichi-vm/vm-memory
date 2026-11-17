@@ -9,7 +9,7 @@ permissions:
   statuses: write
 
 env:
-  REVISION: f227636d15ae53b969eb76aec1bd36cbc765b9b2
+  REVISION: 940b3327919f441eea38d48c67f32fdb7125871c
 
 jobs:
   native-windows:
@@ -36,11 +36,9 @@ jobs:
               "file_views_share_nonzero_offsets_and_release_the_mapping",
               "file_mapping_rejects_empty_and_overflowing_extents",
               "failed_file_view_releases_the_mapping_handle",
-              "section_views_use_data_access_and_survive_handle_closure",
-              "section_view_errors_preserve_the_borrowed_object",
-              "anonymous_allocations_keep_virtual_free_cleanup",
           ):
               assert "mmap::windows::tests::" + name + ": test" in listing, listing
+          assert "section_view_lifecycle: test" in listing, listing
           PYTHON
       - name: Run native tests
         run: cargo +nightly-2026-07-06 test --no-default-features --features backend-mmap,backend-bitmap,backend-atomic -- --show-output
