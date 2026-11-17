@@ -9,7 +9,7 @@ permissions:
   statuses: write
 
 env:
-  REVISION: 6be7d3962b32ba57a56264a0ce933e7bb9d920cd
+  REVISION: f76e7cc6e6311deeb49b6af324b64b09be66d84e
 
 jobs:
   native-windows:
