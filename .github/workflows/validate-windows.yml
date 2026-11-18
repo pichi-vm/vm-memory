@@ -14,11 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - revision: b632d989f1023b5c14e0477ed61512aa0def642b
-            section_api: 'false'
-          - revision: b8acf00c106100f2c33dc24264d409e40a11e4f7
-            section_api: 'true'
-          - revision: d0788e1250c5d02a544f49603acf5575210270fb
+          - revision: fa55f1576a67a175c783f878ebfd1e51ec68b522
             section_api: 'true'
     env:
       REVISION: ${{ matrix.revision }}
@@ -50,7 +46,8 @@ jobs:
           ):
               assert "mmap::windows::tests::" + name + ": test" in listing, listing
           if os.environ["SECTION_API"] == "true":
-              assert "section_view_lifecycle: test" in listing, listing
+              for name in ("map_section_views", "map_section_release"):
+                  assert "mmap::windows::tests::" + name + ": test" in listing, listing
           PYTHON
       - name: Run native tests
         run: cargo +nightly-2026-07-06 test --no-default-features --features backend-mmap,backend-bitmap,backend-atomic -- --show-output
