@@ -9,7 +9,7 @@ permissions:
   statuses: write
 
 env:
-  REVISION: ee9ea72020cbc7fa7f623fa6fa636157e5a0cbca
+  REVISION: 62d30d3ca2811d38c3ba26b8aa88f00737872c7e
 
 jobs:
   native-windows:
@@ -33,9 +33,9 @@ jobs:
           from pathlib import Path
           listing = Path("tests.txt").read_text()
           for name in (
-              "file_views_share_nonzero_offsets_and_release_the_mapping",
-              "file_mapping_rejects_empty_and_overflowing_extents",
-              "failed_file_view_releases_the_mapping_handle",
+              "map_file_offset",
+              "map_invalid_extents",
+              "map_failed_view",
           ):
               assert "mmap::windows::tests::" + name + ": test" in listing, listing
           assert "section_view_lifecycle: test" in listing, listing
