@@ -8,11 +8,19 @@ permissions:
   contents: read
   statuses: write
 
-env:
-  REVISION: 62d30d3ca2811d38c3ba26b8aa88f00737872c7e
-
 jobs:
   native-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - revision: 90c281c884264eb670af17e340e7ebc233397b40
+            section_api: 'false'
+          - revision: d35992e88f13f22b4e0ad42a66fe407ac5d12c7c
+            section_api: 'true'
+    env:
+      REVISION: ${{ matrix.revision }}
+      SECTION_API: ${{ matrix.section_api }}
     runs-on: windows-2025
     timeout-minutes: 15
     defaults:
@@ -31,6 +39,7 @@ jobs:
           cargo +nightly-2026-07-06 test --no-default-features --features backend-mmap,backend-bitmap,backend-atomic -- --list > tests.txt
           python3 - <<'PYTHON'
           from pathlib import Path
+          import os
           listing = Path("tests.txt").read_text()
           for name in (
               "map_file_offset",
@@ -38,7 +47,8 @@ jobs:
               "map_failed_view",
           ):
               assert "mmap::windows::tests::" + name + ": test" in listing, listing
-          assert "section_view_lifecycle: test" in listing, listing
+          if os.environ["SECTION_API"] == "true":
+              assert "section_view_lifecycle: test" in listing, listing
           PYTHON
       - name: Run native tests
         run: cargo +nightly-2026-07-06 test --no-default-features --features backend-mmap,backend-bitmap,backend-atomic -- --show-output
