@@ -14,9 +14,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - revision: 90c281c884264eb670af17e340e7ebc233397b40
+          - revision: b632d989f1023b5c14e0477ed61512aa0def642b
             section_api: 'false'
-          - revision: d35992e88f13f22b4e0ad42a66fe407ac5d12c7c
+          - revision: b8acf00c106100f2c33dc24264d409e40a11e4f7
+            section_api: 'true'
+          - revision: d0788e1250c5d02a544f49603acf5575210270fb
             section_api: 'true'
     env:
       REVISION: ${{ matrix.revision }}
